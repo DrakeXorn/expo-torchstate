@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@drakexorn/expo-torchstate": ["../src/index"],
+      "@drakexorn/expo-torchstate/*": ["../src/*"]
+    }
+  }
+}
