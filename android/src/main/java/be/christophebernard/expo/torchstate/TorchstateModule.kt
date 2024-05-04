@@ -1,47 +1,71 @@
 package be.christophebernard.expo.torchstate
 
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CameraManager.TorchCallback
+import android.os.Bundle
+import android.util.Log
+import androidx.core.content.ContextCompat.getSystemService
+import expo.modules.kotlin.Promise
+import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import java.util.concurrent.Executor
 
 class TorchstateModule : Module() {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
+  private var cameraManager: CameraManager? = null
+  private var torchState: Boolean = false
+  private var torchStateCheckingThread: Thread? = null
+
   override fun definition() = ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('Torchstate')` in JavaScript.
     Name("Torchstate")
 
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants(
-      "PI" to Math.PI
-    )
-
-    // Defines event names that the module can send to JavaScript.
     Events("onChange")
 
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      "Hello world! 👋"
+    OnCreate {
+      cameraManager = getSystemService(appContext.reactContext!!, CameraManager::class.java)!!
+      startTorchStateCheckingThread()
     }
 
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { value: String ->
-      // Send an event to JavaScript.
-      sendEvent("onChange", mapOf(
-        "value" to value
-      ))
+    OnDestroy { torchStateCheckingThread?.interrupt() }
+
+    Function("isTorchOn") {
+      return@Function torchState
     }
 
-    // Enables the module to be used as a native view. Definition components that are accepted as part of
-    // the view definition: Prop, Events.
-    View(TorchstateView::class) {
-      // Defines a setter for the `name` prop.
-      Prop("name") { view: TorchstateView, prop: String ->
-        println(prop)
+    AsyncFunction("setTorchState") { shouldBeOn: Boolean, promise: Promise ->
+      try {
+        val cameraId = cameraManager?.cameraIdList?.get(0)
+
+        if (cameraId == null) {
+          promise.reject(CodedException("Camera not found"))
+          return@AsyncFunction
+        }
+
+        cameraManager?.setTorchMode(cameraId, shouldBeOn)
+
+        promise.resolve(null)
+      } catch (e: Exception) {
+        promise.reject(CodedException(e))
       }
     }
+  }
+
+  private fun startTorchStateCheckingThread() {
+    cameraManager?.registerTorchCallback(object: TorchCallback() {
+      override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
+        Log.d("TorchstateModule", "Torch state changed: $enabled")
+        torchState = enabled
+
+        val eventPayload = Bundle().apply {
+          putBoolean("isOn", enabled)
+        }
+
+        sendEvent(
+          "onChange",
+            eventPayload
+        )
+      }
+    }, null)
   }
 }
