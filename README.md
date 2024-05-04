@@ -27,16 +27,16 @@ Then, you can use the `useTorch` hook to access the flashlight. For example :
 
 ```javascript
 export default function SeeTorchState() {
-		const [torchOn, setTorchStatus] = useTorch();
+  const [torchOn, setTorchStatus] = useTorch();
 
-		return (
-				<View style={styles.container}>
-						<Text>Flashlight turned {torchOn ? "on" : "off"}</Text>
-						<Pressable style={styles.button} onPress={() => setTorchStatus(currentState => !currentState)}>
-								<Text>Toggle flashlight</Text>
-						</Pressable>
-				</View>
-		);
+  return (
+    <View style={styles.container}>
+      <Text>Flashlight turned {torchOn ? "on" : "off"}</Text>
+      <Pressable style={styles.button} onPress={() => setTorchStatus(currentState => !currentState)}>
+        <Text>Toggle flashlight</Text>
+      </Pressable>
+    </View>
+  );
 }
 ```
 
