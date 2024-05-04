@@ -11,6 +11,10 @@ public class TorchstateModule: Module {
     Name("Torchstate")
 
     Events("onChange")
+      
+    OnCreate {
+      startTorchStateCheckingThread()
+    }
 
     Function("isTorchOn") { () in
       guard device != nil else {
@@ -44,12 +48,6 @@ public class TorchstateModule: Module {
         }
       }
     }
-
-  // Start the torch state checking thread when the module is initialized
-  required public init(appContext: AppContext) {
-    super.init(appContext: appContext)
-    startTorchStateCheckingThread()
-  }
 
   private func startTorchStateCheckingThread() {
     torchStateQueue.async {
