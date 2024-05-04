@@ -54,7 +54,6 @@ class TorchstateModule : Module() {
   private fun startTorchStateCheckingThread() {
     cameraManager?.registerTorchCallback(object: TorchCallback() {
       override fun onTorchModeChanged(cameraId: String, enabled: Boolean) {
-        Log.d("TorchstateModule", "Torch state changed: $enabled")
         torchState = enabled
 
         val eventPayload = Bundle().apply {
