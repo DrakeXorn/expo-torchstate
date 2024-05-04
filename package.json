@@ -21,7 +21,10 @@
     "@drakexorn/expo-torchstate",
     "Torchstate"
   ],
-  "repository": "https://github.com/DrakeXorn/expo-torchstate",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DrakeXorn/expo-torchstate.git"
+  },
   "bugs": {
     "url": "https://github.com/DrakeXorn/expo-torchstate/issues"
   },
